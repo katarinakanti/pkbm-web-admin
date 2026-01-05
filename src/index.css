@@ -1,0 +1,61 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+@import "tailwindcss";
+
+@plugin "./hero.ts";
+
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+html,
+body {
+  font-family: "Open Sans";
+}
+
+/* @theme {
+  --color-primary: rgb(22, 144, 145);
+  --color-secondary: rgb(89, 133, 157);
+  --color-background-light: rgb(242, 247, 253);
+} */
+@theme {
+  /* Primary brand color — learning, approachability, trust */
+  --color-primary: rgb(43, 172, 226);
+
+  /* Secondary — credibility, headers, serious content */
+  --color-secondary: rgb(0, 31, 77);
+
+  /* Accent — growth, success states, educational progress */
+  --color-accent: rgb(0, 122, 51);
+
+  /* Optional highlight — links, icons, callouts (use sparingly) */
+  --color-accent-blue: rgb(0, 84, 166);
+
+  /* Background — calm, readable, classroom-friendly */
+  --color-background-light: rgb(248, 251, 255);
+
+  /* Text defaults */
+  --color-text-primary: rgb(0, 31, 77);
+  --color-text-muted: rgb(90, 110, 130);
+}
+
+.noscrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.noscrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+.bn-editor {
+  padding-inline: 0px !important;
+}
+@keyframes gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

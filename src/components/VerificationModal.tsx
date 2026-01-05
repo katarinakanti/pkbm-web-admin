@@ -1,0 +1,271 @@
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Select,
+  SelectItem,
+  Divider,
+  User,
+} from "@heroui/react";
+import {
+  CheckCircle,
+  FileText,
+  MapPin,
+  Clock,
+  XCircle,
+  ExternalLink,
+} from "lucide-react";
+
+export interface VerificationProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  user: {
+    name: string;
+    email: string;
+    package: string;
+  } | null;
+}
+
+export function Verification({
+  isOpen,
+  onOpenChange,
+  user,
+}: VerificationProps) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      size="4xl"
+      scrollBehavior="inside"
+      backdrop="blur"
+      className="rounded-[40px] border border-white/20 shadow-2xl"
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1 p-8 bg-background-light">
+              <div className="flex justify-between items-start w-full">
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-black text-secondary uppercase tracking-tight">
+                    Verifikasi Pendaftar
+                  </h2>
+                  <p className="text-sm text-secondary/50 font-medium">
+                    Tinjau berkas dan tentukan jadwal belajar siswa.
+                  </p>
+                </div>
+                {user && (
+                  <div className="bg-white px-4 py-2 rounded-2xl shadow-sm border border-secondary/5 flex items-center gap-3">
+                    <User
+                      name={user.name}
+                      description={user.package}
+                      avatarProps={{
+                        size: "sm",
+                        className: "bg-primary/20 text-primary font-bold",
+                      }}
+                      classNames={{
+                        name: "font-bold text-secondary",
+                        description:
+                          "text-primary text-[10px] font-black uppercase",
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </ModalHeader>
+
+            <Divider />
+
+            <ModalBody className="p-8">
+              <div className="grid md:grid-cols-2 gap-12">
+                {/* DOKUMEN PREVIEW - KIRI */}
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
+                      Dokumen Terlampir
+                    </h4>
+                    <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+                      4 File
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      "Kartu Keluarga",
+                      "Akte Lahir",
+                      "KTP Ortu",
+                      "Ijazah Terakhir",
+                    ].map((doc) => (
+                      <div
+                        key={doc}
+                        className="aspect-video bg-background-light rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 group hover:border-primary hover:bg-white transition-all cursor-pointer relative overflow-hidden"
+                      >
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ExternalLink size={14} className="text-primary" />
+                        </div>
+                        <FileText
+                          className="text-zinc-300 group-hover:text-primary group-hover:scale-110 transition-transform"
+                          size={28}
+                        />
+                        <span className="text-[10px] mt-3 font-bold text-secondary/60 group-hover:text-primary uppercase tracking-tight">
+                          {doc}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-4 bg-secondary/5 rounded-2xl border border-secondary/10">
+                    <p className="text-[10px] text-secondary/40 font-bold uppercase mb-1">
+                      Catatan Admin:
+                    </p>
+                    <p className="text-xs text-secondary/70 leading-relaxed italic">
+                      "Pastikan NIK pada KK sesuai dengan data Dapodik sekolah
+                      sebelumnya."
+                    </p>
+                  </div>
+                </div>
+
+                {/* PENENTUAN JADWAL - KANAN */}
+                <div className="space-y-8">
+                  <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
+                    Penempatan Siswa
+                  </h4>
+
+                  <div className="space-y-5">
+                    <Select
+                      label="Ruang Kelas"
+                      variant="flat"
+                      labelPlacement="outside"
+                      placeholder="Pilih Ruangan"
+                      startContent={
+                        <MapPin size={18} className="text-primary" />
+                      }
+                      className="font-bold"
+                    >
+                      <SelectItem
+                        key="r1"
+                        className="font-medium text-secondary"
+                      >
+                        Ruang A1 - Gedung Utama
+                      </SelectItem>
+                      <SelectItem
+                        key="r2"
+                        className="font-medium text-secondary"
+                      >
+                        Ruang B2 - Lab Komputer
+                      </SelectItem>
+                      <SelectItem
+                        key="r3"
+                        className="font-medium text-secondary"
+                      >
+                        Ruang Belajar Mandiri
+                      </SelectItem>
+                    </Select>
+
+                    <Select
+                      label="Sesi Belajar"
+                      variant="flat"
+                      labelPlacement="outside"
+                      placeholder="Pilih Sesi"
+                      startContent={
+                        <Clock size={18} className="text-primary" />
+                      }
+                      className="font-bold"
+                    >
+                      <SelectItem
+                        key="s1"
+                        className="font-medium text-secondary"
+                      >
+                        Pagi (08:00 - 11:00)
+                      </SelectItem>
+                      <SelectItem
+                        key="s2"
+                        className="font-medium text-secondary"
+                      >
+                        Siang (13:00 - 15:00)
+                      </SelectItem>
+                      <SelectItem
+                        key="s3"
+                        className="font-medium text-secondary"
+                      >
+                        Sore (15:30 - 17:30)
+                      </SelectItem>
+                    </Select>
+
+                    <Select
+                      label="Hari Tatap Muka"
+                      variant="flat"
+                      labelPlacement="outside"
+                      placeholder="Pilih Hari"
+                      selectionMode="multiple"
+                      className="font-bold"
+                    >
+                      {[
+                        "Senin",
+                        "Selasa",
+                        "Rabu",
+                        "Kamis",
+                        "Jumat",
+                        "Sabtu",
+                      ].map((day) => (
+                        <SelectItem
+                          key={day.toLowerCase()}
+                          className="font-medium text-secondary"
+                        >
+                          {day}
+                        </SelectItem>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <div className="p-5 bg-primary/5 rounded-[28px] border border-primary/10 space-y-2">
+                    <p className="text-xs font-black text-primary uppercase tracking-widest">
+                      Informasi
+                    </p>
+                    <p className="text-[11px] text-secondary/70 leading-relaxed">
+                      Setelah menekan tombol terima, sistem akan otomatis
+                      mengirimkan email konfirmasi dan jadwal kepada siswa yang
+                      bersangkutan.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </ModalBody>
+
+            <ModalFooter className="p-8 bg-background-light flex justify-between items-center">
+              <Button
+                variant="light"
+                color="danger"
+                onPress={onClose}
+                className="font-bold rounded-xl px-6"
+                startContent={<XCircle size={18} />}
+              >
+                Tolak & Kirim Revisi
+              </Button>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="flat"
+                  onPress={onClose}
+                  className="font-bold rounded-xl px-6 text-secondary"
+                >
+                  Simpan Draft
+                </Button>
+                <Button
+                  color="primary"
+                  className="bg-secondary text-white font-black px-10 rounded-xl shadow-xl shadow-secondary/20"
+                  onPress={onClose}
+                  startContent={<CheckCircle size={18} />}
+                >
+                  Terima & Publikasi
+                </Button>
+              </div>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}
