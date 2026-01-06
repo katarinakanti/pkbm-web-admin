@@ -1,4 +1,5 @@
 
+import { ApplicationStatus } from '../model/enum/ApplicationStatus'
 import { Application } from '../model/table/Application'
 
 export interface T_adminVerifyApplicationById_headers {
@@ -8,6 +9,7 @@ export interface T_adminVerifyApplicationById_path {
   id_application: number
 }
 export interface T_adminVerifyApplicationById_body {
+  application_status: ApplicationStatus
   notes?: string
 }
 

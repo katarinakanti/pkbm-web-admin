@@ -16,6 +16,7 @@ import { T_userDeleteUserApplicationById } from "./api/userDeleteUserApplication
 import { T_registerNewUser } from "./api/registerNewUser";
 import { T_loginUser } from "./api/loginUser";
 import { T_verifyEmailRegistration } from "./api/verifyEmailRegistration";
+import { T_getProfile } from "./api/getProfile";
 import { T_userMakePayment } from "./api/userMakePayment";
 
 export namespace AxiosClient {
@@ -112,6 +113,10 @@ export namespace AxiosClient {
   export const verifyEmailRegistration: T_verifyEmailRegistration = async (req, base_url: string = BaseURL.instance.base_url) => {
     const final_url = __build_path(base_url, '/verify-registration-email', {});
     return (await axios['post'](final_url, req.body, { })).data as any;
+  }
+  export const getProfile: T_getProfile = async (req, base_url: string = BaseURL.instance.base_url) => {
+    const final_url = __build_path(base_url, '/profile', {});
+    return (await axios['get'](final_url, { headers: req.headers as any, })).data as any;
   }
   export const userMakePayment: T_userMakePayment = async (req, base_url: string = BaseURL.instance.base_url) => {
     const final_url = __build_path(base_url, '/user/application/payment/:id', req.path);

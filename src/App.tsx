@@ -5,9 +5,14 @@ import {
   RouterProvider,
   useLocation,
 } from "react-router-dom";
+import { AxiosClient } from "./api/AxiosClient";
 import { Dashboard } from "./pages/dashboard";
 import { VerifikasiPage } from "./pages/verifcation-page";
 import { SettingsPage } from "./pages/settings";
+import { LoginPage } from "./pages/login";
+
+// Initialize API base URL immediately
+AxiosClient.BaseURL.instance.set(import.meta.env.VITE_API_URL);
 
 export default function App() {
   return (
@@ -16,8 +21,11 @@ export default function App() {
         {
           element: <RootLayoutScrollToTop />,
           children: [
-            { path: "/", element: <Dashboard /> },
-            { path: "/verifikasi", element: <VerifikasiPage /> },
+            { path: "/login", element: <LoginPage /> },
+
+            // { path: "/", element: <Dashboard /> },
+            { path: "/", element: <VerifikasiPage /> },
+            // { path: "/verifikasi", element: <VerifikasiPage /> },
             { path: "/settings", element: <SettingsPage /> },
           ],
         },

@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -9,7 +10,10 @@ import {
   SelectItem,
   Divider,
   User,
+  addToast,
 } from "@heroui/react";
+import { AxiosClient } from "../api/AxiosClient";
+import { UserUtility } from "../utils";
 import {
   CheckCircle,
   FileText,
@@ -18,6 +22,7 @@ import {
   XCircle,
   ExternalLink,
 } from "lucide-react";
+import { ApplicationStatus } from "../api/model/enum/ApplicationStatus";
 
 export interface VerificationProps {
   isOpen: boolean;
@@ -26,18 +31,60 @@ export interface VerificationProps {
     name: string;
     email: string;
     package: string;
+    note: string;
+    status: ApplicationStatus;
   } | null;
+  applicationId?: number | null;
 }
 
-export function Verification({
-  isOpen,
-  onOpenChange,
-  user,
-}: VerificationProps) {
+export function Verification(props: VerificationProps) {
+  const [submitting, setSubmitting] = useState(false);
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    console.log("NOTES CHANGED", notes);
+  }, [notes]);
+  useEffect(() => {
+    if (props.isOpen) {
+      if (props.user?.note) {
+        setNotes(props.user.note);
+      } else {
+        setNotes("");
+      }
+    }
+  }, [props.applicationId, props.isOpen]);
+
+  async function handleVerify() {
+    if (!props.applicationId) return;
+    setSubmitting(true);
+    try {
+      console.log(
+        "Verifying application:",
+        props.applicationId,
+        "with notes:",
+        notes
+      );
+      await AxiosClient.adminVerifyApplicationById({
+        headers: { authorization: UserUtility.getAuthHeader() },
+        path: { id_application: props.applicationId },
+        body: {
+          application_status: ApplicationStatus.VERIFIED,
+          notes: notes,
+        },
+      });
+      console.log("berhasil");
+      addToast({ title: "Aplikasi berhasil diverifikasi" });
+      props.onOpenChange(false);
+    } catch (err: any) {
+      addToast({ title: err?.message ?? "Gagal memverifikasi" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
   return (
     <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      isOpen={props.isOpen}
+      onOpenChange={props.onOpenChange}
       size="4xl"
       scrollBehavior="inside"
       backdrop="blur"
@@ -56,11 +103,11 @@ export function Verification({
                     Tinjau berkas dan tentukan jadwal belajar siswa.
                   </p>
                 </div>
-                {user && (
+                {props.user && (
                   <div className="bg-white px-4 py-2 rounded-2xl shadow-sm border border-secondary/5 flex items-center gap-3">
                     <User
-                      name={user.name}
-                      description={user.package}
+                      name={props.user.name}
+                      description={props.user.package}
                       avatarProps={{
                         size: "sm",
                         className: "bg-primary/20 text-primary font-bold",
@@ -126,9 +173,25 @@ export function Verification({
                     </p>
                   </div>
                 </div>
+                <div className="space-y-4">
+                  <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
+                    Notes
+                  </h4>
+                  <div className="space-y-5">
+                    <textarea
+                      value={notes}
+                      onChange={(e) => {
+                        console.log("TEXTAREA INPUT:", e.target.value);
+                        setNotes(e.target.value);
+                      }}
+                      placeholder="Tambahkan catatan untuk pendaftar di sini..."
+                      className="w-full h-32 p-4 border border-secondary/10 rounded-2xl bg-background-light text-secondary text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                    />
+                  </div>
+                </div>
 
                 {/* PENENTUAN JADWAL - KANAN */}
-                <div className="space-y-8">
+                {/* <div className="space-y-8">
                   <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
                     Penempatan Siswa
                   </h4>
@@ -230,39 +293,34 @@ export function Verification({
                       bersangkutan.
                     </p>
                   </div>
-                </div>
+                </div> */}
               </div>
             </ModalBody>
-
-            <ModalFooter className="p-8 bg-background-light flex justify-between items-center">
-              <Button
-                variant="light"
-                color="danger"
-                onPress={onClose}
-                className="font-bold rounded-xl px-6"
-                startContent={<XCircle size={18} />}
-              >
-                Tolak & Kirim Revisi
-              </Button>
-
-              <div className="flex gap-3">
+            {props.user?.status === ApplicationStatus.VERIFIED ? null : (
+              <ModalFooter className="p-8 bg-background-light flex justify-between items-center">
                 <Button
-                  variant="flat"
+                  variant="light"
+                  color="danger"
                   onPress={onClose}
-                  className="font-bold rounded-xl px-6 text-secondary"
+                  className="font-bold rounded-xl px-6"
+                  startContent={<XCircle size={18} />}
                 >
-                  Simpan Draft
+                  Tolak & Kirim Revisi
                 </Button>
-                <Button
-                  color="primary"
-                  className="bg-secondary text-white font-black px-10 rounded-xl shadow-xl shadow-secondary/20"
-                  onPress={onClose}
-                  startContent={<CheckCircle size={18} />}
-                >
-                  Terima & Publikasi
-                </Button>
-              </div>
-            </ModalFooter>
+
+                <div className="flex gap-3">
+                  <Button
+                    color="primary"
+                    className="bg-secondary text-white font-black px-10 rounded-xl shadow-xl shadow-secondary/20"
+                    onPress={handleVerify}
+                    startContent={<CheckCircle size={18} />}
+                    disabled={submitting}
+                  >
+                    {submitting ? "Processing..." : "Terima & Publikasi"}
+                  </Button>
+                </div>
+              </ModalFooter>
+            )}
           </>
         )}
       </ModalContent>

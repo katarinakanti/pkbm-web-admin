@@ -62,21 +62,21 @@ export function Header(props: HeaderProps) {
         {/* DESKTOP MENU - DASHBOARD NAVIGATION */}
         <div className="hidden md:flex items-center justify-center flex-1 gap-2">
           {[
-            {
-              label: "Dashboard",
-              path: "/",
-              icon: <LayoutDashboard size={18} />,
-            },
+            // {
+            //   label: "Dashboard",
+            //   path: "/",
+            //   icon: <LayoutDashboard size={18} />,
+            // },
             {
               label: "Verifikasi",
               path: "/verifikasi",
               icon: <UserCheck size={18} />,
             },
-            {
-              label: "Settings",
-              path: "/settings",
-              icon: <Settings size={18} />,
-            },
+            // {
+            //   label: "Settings",
+            //   path: "/settings",
+            //   icon: <Settings size={18} />,
+            // },
           ].map((item) => (
             <Button
               key={item.path}
@@ -141,13 +141,14 @@ export function Header(props: HeaderProps) {
                 aria-label="Admin Actions"
                 variant="flat"
                 className="p-2"
+                disabledKeys={["profile"]}
               >
                 <DropdownItem
                   key="profile"
                   className="h-12 gap-2 opacity-100 cursor-default"
                 >
                   <p className="font-black text-primary text-xs italic">
-                    admin@budimandrestanta.id
+                    info.yayasanbdt@gmail.com
                   </p>
                 </DropdownItem>
                 <DropdownItem

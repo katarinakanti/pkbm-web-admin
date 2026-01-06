@@ -9,47 +9,77 @@ import {
   Button,
   Chip,
   useDisclosure,
+  addToast,
 } from "@heroui/react";
 import { Search, Filter, Eye, RefreshCcw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "../components/layout/Header";
 import { Verification } from "../components/VerificationModal";
+import { AxiosClient } from "../api/AxiosClient";
+import { UserUtility } from "../utils";
+import { Application } from "../api/model/table/Application";
+import moment from "moment";
 
 export function VerifikasiPage() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<Application | null>(null);
+  const [data, setData] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  async function fetchApplications() {
+    setLoading(true);
+    try {
+      console.log("fetchApplications");
+      const res = await AxiosClient.adminGetUserApplicationsList({
+        headers: { authorization: UserUtility.getAuthHeader() },
+        query: { limit: 10, offset: 0 },
+      });
+      setData(res.data);
+      console.log("res", res);
+    } catch (err: any) {
+      addToast({
+        title:
+          err?.response?.data?.toString() ?? err?.message ?? "Unknown Error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+    fetchApplications();
+  }, []);
 
   const handleOpenVerify = (user: any) => {
     setSelectedUser(user);
     onOpen();
   };
 
-  const data = [
-    {
-      id: 1,
-      name: "Budi Santoso",
-      email: "budi@mail.com",
-      package: "Paket C",
-      status: "pending",
-      date: "02 Jan 2025",
-    },
-    {
-      id: 2,
-      name: "Siti Aminah",
-      email: "siti@mail.com",
-      package: "Paket B",
-      status: "pending",
-      date: "01 Jan 2025",
-    },
-    {
-      id: 3,
-      name: "Ani Wijaya",
-      email: "ani@mail.com",
-      package: "Paket A",
-      status: "pending",
-      date: "30 Des 2024",
-    },
-  ];
+  // const data = [
+  //   {
+  //     id_user: 1,
+  //     name: "Budi Santoso",
+  //     parent_email: "budi@mail.com",
+  //     application_type: "Paket C",
+  //     status: "pending",
+  //     created_at: "02 Jan 2025",
+  //   },
+  //   {
+  //     id_user: 2,
+  //     name: "Siti Aminah",
+  //     parent_email: "siti@mail.com",
+  //     application_type: "Paket B",
+  //     status: "pending",
+  //     created_at: "01 Jan 2025",
+  //   },
+  //   {
+  //     id_user: 3,
+  //     name: "Ani Wijaya",
+  //     parent_email: "ani@mail.com",
+  //     application_type: "Paket A",
+  //     status: "pending",
+  //     created_at: "30 Des 2024",
+  //   },
+  // ];
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -59,13 +89,20 @@ export function VerifikasiPage() {
           <h2 className="text-3xl font-black text-secondary italic underline decoration-primary/30">
             Daftar Antrean Verifikasi
           </h2>
-          <Button isIconOnly variant="flat" className="bg-white">
-            <RefreshCcw size={18} />
+          <Button
+            isIconOnly
+            variant="flat"
+            className="bg-white"
+            onPress={() => fetchApplications()}
+            aria-label="Refresh"
+            disabled={loading}
+          >
+            <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
           </Button>
         </div>
 
         {/* TOOLBAR */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between bg-white p-4 rounded-3xl shadow-sm border border-secondary/5">
+        {/* <div className="flex flex-col md:flex-row gap-4 justify-between bg-white p-4 rounded-3xl shadow-sm border border-secondary/5">
           <Input
             isClearable
             className="w-full md:max-w-xs font-medium"
@@ -88,10 +125,20 @@ export function VerifikasiPage() {
               Ekspor Data
             </Button>
           </div>
-        </div>
+        </div> */}
 
         {/* TABLE */}
-        <div className="bg-white rounded-[40px] shadow-xl overflow-hidden border border-secondary/5">
+        <div className="relative bg-white rounded-[40px] shadow-xl overflow-hidden border border-secondary/5">
+          {loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+              <div className="flex flex-col items-center gap-2">
+                <RefreshCcw size={36} className="animate-spin text-primary" />
+                <span className="text-sm font-medium text-secondary/70">
+                  Loading...
+                </span>
+              </div>
+            </div>
+          )}
           <Table
             aria-label="Verifikasi Table"
             className="p-4"
@@ -120,16 +167,16 @@ export function VerifikasiPage() {
             <TableBody>
               {data.map((row) => (
                 <TableRow
-                  key={row.id}
+                  key={row.id_user}
                   className="border-b border-zinc-50 last:border-none hover:bg-background-light transition-colors"
                 >
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-bold text-secondary">
-                        {row.name}
+                        {row.id_user}
                       </span>
                       <span className="text-xs text-zinc-400 font-medium">
-                        {row.email}
+                        {row.parent_email}
                       </span>
                     </div>
                   </TableCell>
@@ -140,11 +187,11 @@ export function VerifikasiPage() {
                       color="primary"
                       className="font-bold text-[10px] uppercase"
                     >
-                      {row.package}
+                      {row.application_type}
                     </Chip>
                   </TableCell>
                   <TableCell className="text-sm font-medium text-secondary/60 italic">
-                    {row.date}
+                    {moment(row.created_at).format("DD MMM YYYY")}
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -176,7 +223,18 @@ export function VerifikasiPage() {
       <Verification
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        user={selectedUser}
+        user={
+          selectedUser
+            ? {
+                name: String(selectedUser.id_user),
+                email: selectedUser.parent_email,
+                package: selectedUser.application_type,
+                note: selectedUser.notes || "",
+                status: selectedUser.status_application,
+              }
+            : null
+        }
+        applicationId={selectedUser?.id ?? null}
       />
     </div>
   );
