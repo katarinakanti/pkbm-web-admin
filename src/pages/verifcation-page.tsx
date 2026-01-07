@@ -54,33 +54,6 @@ export function VerifikasiPage() {
     onOpen();
   };
 
-  // const data = [
-  //   {
-  //     id_user: 1,
-  //     name: "Budi Santoso",
-  //     parent_email: "budi@mail.com",
-  //     application_type: "Paket C",
-  //     status: "pending",
-  //     created_at: "02 Jan 2025",
-  //   },
-  //   {
-  //     id_user: 2,
-  //     name: "Siti Aminah",
-  //     parent_email: "siti@mail.com",
-  //     application_type: "Paket B",
-  //     status: "pending",
-  //     created_at: "01 Jan 2025",
-  //   },
-  //   {
-  //     id_user: 3,
-  //     name: "Ani Wijaya",
-  //     parent_email: "ani@mail.com",
-  //     application_type: "Paket A",
-  //     status: "pending",
-  //     created_at: "30 Des 2024",
-  //   },
-  // ];
-
   return (
     <div className="min-h-screen bg-background-light">
       <Header />
@@ -231,6 +204,7 @@ export function VerifikasiPage() {
                 package: selectedUser.application_type,
                 note: selectedUser.notes || "",
                 status: selectedUser.status_application,
+                application: selectedUser,
               }
             : null
         }

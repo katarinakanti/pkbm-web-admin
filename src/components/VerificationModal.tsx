@@ -21,8 +21,10 @@ import {
   Clock,
   XCircle,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import { ApplicationStatus } from "../api/model/enum/ApplicationStatus";
+import { Application } from "../api/model/table/Application";
 
 export interface VerificationProps {
   isOpen: boolean;
@@ -33,6 +35,7 @@ export interface VerificationProps {
     package: string;
     note: string;
     status: ApplicationStatus;
+    application: Application;
   } | null;
   applicationId?: number | null;
 }
@@ -139,28 +142,81 @@ export function Verification(props: VerificationProps) {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    {[
-                      "Kartu Keluarga",
-                      "Akte Lahir",
-                      "KTP Ortu",
-                      "Ijazah Terakhir",
-                    ].map((doc) => (
-                      <div
-                        key={doc}
-                        className="aspect-video bg-background-light rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 group hover:border-primary hover:bg-white transition-all cursor-pointer relative overflow-hidden"
-                      >
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ExternalLink size={14} className="text-primary" />
-                        </div>
-                        <FileText
-                          className="text-zinc-300 group-hover:text-primary group-hover:scale-110 transition-transform"
-                          size={28}
-                        />
-                        <span className="text-[10px] mt-3 font-bold text-secondary/60 group-hover:text-primary uppercase tracking-tight">
-                          {doc}
-                        </span>
-                      </div>
-                    ))}
+                    {props.user?.application &&
+                      [
+                        { label: "Kartu Keluarga", key: "kk_url" },
+                        { label: "Akte Lahir", key: "akta_lahir_url" },
+                        { label: "KTP Ortu", key: "ktp_ortu_url" },
+                        {
+                          label: "Ijazah Terakhir",
+                          key: "ijazah_terakhir_url",
+                        },
+                        // { label: "Raport", key: "raport_url" },
+                        // { label: "Photo", key: "photo_url" },
+                        // { label: "Selfie", key: "selfie_url" },
+                      ].map((doc) => {
+                        const url = props.user?.application?.[
+                          doc.key as keyof typeof props.user.application
+                        ] as string | undefined;
+                        const fileUrl = url
+                          ? `https://api-fir1.onrender.com${url}`
+                          : null;
+
+                        return (
+                          <div
+                            key={doc.key}
+                            className="aspect-video bg-background-light rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 group hover:border-primary hover:bg-white transition-all relative overflow-hidden"
+                            style={{ cursor: fileUrl ? "pointer" : "default" }}
+                          >
+                            {fileUrl && (
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0"
+                                title={`View ${doc.label}`}
+                              />
+                            )}
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                              {fileUrl && (
+                                <>
+                                  {/* <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      window.open(fileUrl, "_blank");
+                                    }}
+                                    className="p-1 bg-primary/10 hover:bg-primary/20 rounded text-primary"
+                                    title="View"
+                                  >
+                                    <ExternalLink size={14} />
+                                  </button> */}
+                                  <a
+                                    href={fileUrl}
+                                    download
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="p-1 bg-primary/10 hover:bg-primary/20 rounded text-primary"
+                                    title="Download"
+                                  >
+                                    <Download size={14} />
+                                  </a>
+                                </>
+                              )}
+                            </div>
+                            <FileText
+                              className="text-zinc-300 group-hover:text-primary group-hover:scale-110 transition-transform"
+                              size={28}
+                            />
+                            <span className="text-[10px] mt-3 font-bold text-secondary/60 group-hover:text-primary uppercase tracking-tight text-center px-2">
+                              {doc.label}
+                            </span>
+                            {!fileUrl && (
+                              <span className="text-[8px] text-red-500 font-bold mt-1">
+                                No File
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
 
                   <div className="p-4 bg-secondary/5 rounded-2xl border border-secondary/10">
