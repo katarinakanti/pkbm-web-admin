@@ -18,10 +18,15 @@ import { UserUtility } from "../utils";
 import { PaymentVerificationModal } from "../components/PaymentVerificationModal";
 import { Application } from "../api/model/table/Application";
 
+// Extend the Application type to include the UI-specific full_name
+type ExtendedApplication = Application & { full_name: string };
+
 export function PembayaranPage() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [data, setData] = useState<Application[]>([]);
+  const [selectedApp, setSelectedApp] = useState<ExtendedApplication | null>(
+    null
+  );
+  const [data, setData] = useState<ExtendedApplication[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function fetchPayments() {
@@ -132,11 +137,7 @@ export function PembayaranPage() {
                     <div className="flex flex-col">
                       {/* Menggunakan full_name hasil merged */}
                       <span className="font-bold text-secondary">
-<<<<<<< HEAD
-                        {row.parent_fullname || "Siswa"}
-=======
                         {row.full_name}
->>>>>>> 395651c (all check verif)
                       </span>
                       <span className="text-xs text-zinc-400 font-medium">
                         {row.parent_email}

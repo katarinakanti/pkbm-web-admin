@@ -93,7 +93,9 @@ export function Verification(props: VerificationProps) {
       addToast({ title: "Status Berhasil Diperbarui", color: "success" });
       props.onOpenChange(false);
     } catch (err: unknown) {
-      addToast({ title: err instanceof Error ? err.message : "Gagal memverifikasi" });
+      addToast({
+        title: err instanceof Error ? err.message : "Gagal memverifikasi",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -120,7 +122,9 @@ export function Verification(props: VerificationProps) {
       addToast({ title: "Aplikasi berhasil ditolak" });
       props.onOpenChange(false);
     } catch (err: unknown) {
-      addToast({ title: err instanceof Error ? err.message : "Gagal memverifikasi" });
+      addToast({
+        title: err instanceof Error ? err.message : "Gagal memverifikasi",
+      });
     } finally {
       setSubmitting(false);
     }

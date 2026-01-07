@@ -35,9 +35,12 @@ export function LoginPage() {
       });
       navigate("/");
     } catch (err: unknown) {
-      const errorMessage = err && typeof err === 'object' && 'response' in err 
-        ? String((err as { response?: { data?: unknown } }).response?.data) 
-        : err instanceof Error ? err.message : "Unknown Error";
+      const errorMessage =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response?: { data?: unknown } }).response?.data)
+          : err instanceof Error
+          ? err.message
+          : "Unknown Error";
       addToast({
         title: errorMessage,
       });

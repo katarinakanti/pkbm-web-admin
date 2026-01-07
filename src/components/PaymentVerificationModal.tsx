@@ -64,7 +64,8 @@ export function PaymentVerificationModal({
     } catch (err: unknown) {
       addToast({
         title: "Gagal memproses pembayaran",
-        description: err instanceof Error ? err.message : "Terjadi kesalahan pada server",
+        description:
+          err instanceof Error ? err.message : "Terjadi kesalahan pada server",
         color: "danger",
       });
     } finally {
@@ -125,7 +126,7 @@ export function PaymentVerificationModal({
                   />
                   {/* Overlay Actions */}
                   <div className="absolute inset-0 bg-secondary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 z-10">
-                    <Button
+                    {/* <Button
                       as="a"
                       href={proofUrl}
                       target="_blank"
@@ -134,7 +135,7 @@ export function PaymentVerificationModal({
                       radius="full"
                     >
                       <ExternalLink size={20} />
-                    </Button>
+                    </Button> */}
                     <Button
                       as="a"
                       href={proofUrl}

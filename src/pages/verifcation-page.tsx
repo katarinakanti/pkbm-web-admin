@@ -48,27 +48,31 @@ export function VerifikasiPage() {
 
       const applicantsList = applicantsRes || [];
 
-      const merged: ExtendedApplication[] = (res.data || []).map((app: Application) => {
-        const found = applicantsList.find(
-          (a: { id: number }) => a.id === app.id_user_applicant
-        );
+      const merged: ExtendedApplication[] = (res.data || []).map(
+        (app: Application) => {
+          const found = applicantsList.find(
+            (a: { id: number }) => a.id === app.id_user_applicant
+          );
 
-        const full_name =
-          app.full_name ||
-          found?.fullname ||
-          app.otm_id_user_applicant?.fullname ||
-          app.parent_fullname ||
-          app.parent_email ||
-          "Unknown Student";
+          const full_name =
+            found?.fullname ||
+            app.otm_id_user_applicant?.fullname ||
+            app.parent_fullname ||
+            app.parent_email ||
+            "Unknown Student";
 
-        return { ...app, full_name };
-      });
+          return { ...app, full_name };
+        }
+      );
 
       setData(merged);
     } catch (err: unknown) {
-      const errorMessage = err && typeof err === 'object' && 'response' in err 
-        ? String((err as { response?: { data?: unknown } }).response?.data) 
-        : err instanceof Error ? err.message : "Unknown error";
+      const errorMessage =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response?: { data?: unknown } }).response?.data)
+          : err instanceof Error
+          ? err.message
+          : "Unknown error";
       addToast({
         title: "Error fetching data",
         description: errorMessage,
@@ -231,7 +235,7 @@ export function VerifikasiPage() {
                         color = "danger";
                         label = "Rejected";
                       } else if (isPaid) {
-                        color = "primary";
+                        color = "success";
                         label = "Paid / Approved";
                       }
 
