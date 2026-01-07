@@ -4,6 +4,7 @@ import { T_adminGetApplicationById } from "./api/adminGetApplicationById";
 import { T_adminVerifyApplicationById } from "./api/adminVerifyApplicationById";
 import { T_loginAdmin } from "./api/loginAdmin";
 import { T_registerAdmin } from "./api/registerAdmin";
+import { T_adminVerifyPayment } from "./api/adminVerifyPayment";
 import { T_userGetUserApplicantsList } from "./api/userGetUserApplicantsList";
 import { T_userCreateUserApplicant } from "./api/userCreateUserApplicant";
 import { T_userUpdateUserApplicantById } from "./api/userUpdateUserApplicantById";
@@ -66,6 +67,10 @@ export namespace AxiosClient {
     const final_url = __build_path(base_url, '/admin/register', {});
     return (await axios['post'](final_url, req.body, { })).data as any;
   }
+  export const adminVerifyPayment: T_adminVerifyPayment = async (req, base_url: string = BaseURL.instance.base_url) => {
+    const final_url = __build_path(base_url, '/admin/application/payment/:id', req.path);
+    return (await axios['put'](final_url, req.body, { headers: req.headers as any, })).data as any;
+  }
   export const userGetUserApplicantsList: T_userGetUserApplicantsList = async (req, base_url: string = BaseURL.instance.base_url) => {
     const final_url = __build_path(base_url, '/user/applicants', {});
     return (await axios['get'](final_url, { headers: req.headers as any, })).data as any;
@@ -120,6 +125,6 @@ export namespace AxiosClient {
   }
   export const userMakePayment: T_userMakePayment = async (req, base_url: string = BaseURL.instance.base_url) => {
     const final_url = __build_path(base_url, '/user/application/payment/:id', req.path);
-    return (await axios['put'](final_url, {}, { headers: req.headers as any, })).data as any;
+    return (await axios['put'](final_url, req.body, { headers: req.headers as any, })).data as any;
   }
 }

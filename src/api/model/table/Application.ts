@@ -39,5 +39,7 @@ export interface Application {
   notes?: string;
   updated_at?: Date;
   payment_status?: boolean;
+  payment_verification_status?: boolean;
   paid_at?: Date;
+  payment_proof_url?: string;
 }

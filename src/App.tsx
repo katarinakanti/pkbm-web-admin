@@ -10,6 +10,7 @@ import { Dashboard } from "./pages/dashboard";
 import { VerifikasiPage } from "./pages/verifcation-page";
 import { SettingsPage } from "./pages/settings";
 import { LoginPage } from "./pages/login";
+import { PembayaranPage } from "./pages/pembayaran";
 
 // Initialize API base URL immediately
 AxiosClient.BaseURL.instance.set(import.meta.env.VITE_API_URL);
@@ -25,6 +26,8 @@ export default function App() {
 
             // { path: "/", element: <Dashboard /> },
             { path: "/", element: <VerifikasiPage /> },
+            { path: "/pembayaran", element: <PembayaranPage /> },
+
             // { path: "/verifikasi", element: <VerifikasiPage /> },
             { path: "/settings", element: <SettingsPage /> },
           ],

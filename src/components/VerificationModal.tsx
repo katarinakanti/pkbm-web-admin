@@ -49,13 +49,17 @@ export function Verification(props: VerificationProps) {
   }, [notes]);
   useEffect(() => {
     if (props.isOpen) {
-      if (props.user?.note) {
-        setNotes(props.user.note);
+      // If the application is already verified, show the saved application.notes
+      if (
+        props.user?.status === ApplicationStatus.VERIFIED ||
+        props.user?.status === ApplicationStatus.REJECTED
+      ) {
+        setNotes(props.user?.application?.notes || "");
       } else {
-        setNotes("");
+        setNotes(props.user?.note || "");
       }
     }
-  }, [props.applicationId, props.isOpen]);
+  }, [props.applicationId, props.isOpen, props.user]);
 
   async function handleVerify() {
     if (!props.applicationId) return;
@@ -77,6 +81,33 @@ export function Verification(props: VerificationProps) {
       });
       console.log("berhasil");
       addToast({ title: "Aplikasi berhasil diverifikasi" });
+      props.onOpenChange(false);
+    } catch (err: any) {
+      addToast({ title: err?.message ?? "Gagal memverifikasi" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+  async function handleReject() {
+    if (!props.applicationId) return;
+    setSubmitting(true);
+    try {
+      console.log(
+        "Denying application:",
+        props.applicationId,
+        "with notes:",
+        notes
+      );
+      await AxiosClient.adminVerifyApplicationById({
+        headers: { authorization: UserUtility.getAuthHeader() },
+        path: { id_application: props.applicationId },
+        body: {
+          application_status: ApplicationStatus.REJECTED,
+          notes: notes,
+        },
+      });
+      console.log("deny berhasil");
+      addToast({ title: "Aplikasi berhasil ditolak" });
       props.onOpenChange(false);
     } catch (err: any) {
       addToast({ title: err?.message ?? "Gagal memverifikasi" });
@@ -147,19 +178,20 @@ export function Verification(props: VerificationProps) {
                         { label: "Kartu Keluarga", key: "kk_url" },
                         { label: "Akte Lahir", key: "akta_lahir_url" },
                         { label: "KTP Ortu", key: "ktp_ortu_url" },
-                        {
-                          label: "Ijazah Terakhir",
-                          key: "ijazah_terakhir_url",
-                        },
+                        // {
+                        //   label: "Ijazah Terakhir",
+                        //   key: "ijazah_terakhir_url",
+                        // },
                         // { label: "Raport", key: "raport_url" },
-                        // { label: "Photo", key: "photo_url" },
+                        { label: "Photo", key: "photo_url" },
                         // { label: "Selfie", key: "selfie_url" },
                       ].map((doc) => {
                         const url = props.user?.application?.[
                           doc.key as keyof typeof props.user.application
                         ] as string | undefined;
                         const fileUrl = url
-                          ? `https://api-fir1.onrender.com${url}`
+                          ? // ? `https://api-fir1.onrender.com${url}`
+                            `${url}`
                           : null;
 
                         return (
@@ -242,6 +274,10 @@ export function Verification(props: VerificationProps) {
                       }}
                       placeholder="Tambahkan catatan untuk pendaftar di sini..."
                       className="w-full h-32 p-4 border border-secondary/10 rounded-2xl bg-background-light text-secondary text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                      disabled={
+                        props.user?.status === ApplicationStatus.VERIFIED ||
+                        props.user?.status === ApplicationStatus.REJECTED
+                      }
                     />
                   </div>
                 </div>
@@ -352,16 +388,18 @@ export function Verification(props: VerificationProps) {
                 </div> */}
               </div>
             </ModalBody>
-            {props.user?.status === ApplicationStatus.VERIFIED ? null : (
+            {props.user?.status === ApplicationStatus.VERIFIED ||
+            props.user?.status === ApplicationStatus.REJECTED ? null : (
               <ModalFooter className="p-8 bg-background-light flex justify-between items-center">
                 <Button
                   variant="light"
                   color="danger"
-                  onPress={onClose}
+                  onPress={handleReject}
+                  disabled={submitting}
                   className="font-bold rounded-xl px-6"
                   startContent={<XCircle size={18} />}
                 >
-                  Tolak & Kirim Revisi
+                  {submitting ? "Processing..." : "Tolak & Kirim Revisi"}
                 </Button>
 
                 <div className="flex gap-3">
@@ -372,7 +410,7 @@ export function Verification(props: VerificationProps) {
                     startContent={<CheckCircle size={18} />}
                     disabled={submitting}
                   >
-                    {submitting ? "Processing..." : "Terima & Publikasi"}
+                    {submitting ? "Processing..." : "Terima & Verify"}
                   </Button>
                 </div>
               </ModalFooter>

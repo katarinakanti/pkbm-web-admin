@@ -8,6 +8,7 @@ import {
   LogOut,
   Search,
   Settings,
+  HandCoins,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -68,9 +69,14 @@ export function Header(props: HeaderProps) {
             //   icon: <LayoutDashboard size={18} />,
             // },
             {
-              label: "Verifikasi",
-              path: "/verifikasi",
+              label: "Verifikasi Berkas",
+              path: "/",
               icon: <UserCheck size={18} />,
+            },
+            {
+              label: "Verikasi Pembayaran",
+              path: "/pembayaran",
+              icon: <HandCoins size={18} />,
             },
             // {
             //   label: "Settings",
@@ -205,9 +211,14 @@ export function Header(props: HeaderProps) {
                 icon: <LayoutDashboard size={20} />,
               },
               {
-                label: "Verifikasi",
-                path: "/verifikasi",
-                icon: <UserCheck size={20} />,
+                label: "Verifikasi Berkas",
+                path: "/",
+                icon: <UserCheck size={18} />,
+              },
+              {
+                label: "Verikasi Pembayaran",
+                path: "/pembayaran",
+                icon: <HandCoins size={18} />,
               },
             ].map((item) => (
               <Link

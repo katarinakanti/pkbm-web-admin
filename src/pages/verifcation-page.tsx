@@ -11,45 +11,84 @@ import {
   useDisclosure,
   addToast,
 } from "@heroui/react";
-import { Search, Filter, Eye, RefreshCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Search, Filter, Eye, RefreshCcw, UserCheck } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { Header } from "../components/layout/Header";
 import { Verification } from "../components/VerificationModal";
 import { AxiosClient } from "../api/AxiosClient";
 import { UserUtility } from "../utils";
 import { Application } from "../api/model/table/Application";
 import moment from "moment";
+import { ApplicationStatus } from "../api/model/enum/ApplicationStatus";
+
+// Extend the Application type to include the UI-specific full_name
+type ExtendedApplication = Application & { full_name: string };
 
 export function VerifikasiPage() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [selectedUser, setSelectedUser] = useState<Application | null>(null);
-  const [data, setData] = useState<Application[]>([]);
+  const [selectedUser, setSelectedUser] = useState<ExtendedApplication | null>(
+    null
+  );
+  const [data, setData] = useState<ExtendedApplication[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filterValue, setFilterValue] = useState("");
 
   async function fetchApplications() {
     setLoading(true);
     try {
-      console.log("fetchApplications");
       const res = await AxiosClient.adminGetUserApplicationsList({
         headers: { authorization: UserUtility.getAuthHeader() },
-        query: { limit: 10, offset: 0 },
+        query: { limit: 50, offset: 0 },
       });
-      setData(res.data);
-      console.log("res", res);
+
+      const applicantsRes = await AxiosClient.userGetUserApplicantsList({
+        headers: { authorization: UserUtility.getAuthHeader() },
+      });
+
+      const applicantsList = applicantsRes || [];
+
+      const merged: ExtendedApplication[] = (res.data || []).map((app: any) => {
+        const found = applicantsList.find(
+          (a: any) => a.id === app.id_user_applicant
+        );
+
+        const full_name =
+          app.full_name ||
+          found?.fullname ||
+          app.otm_id_user_applicant?.fullname ||
+          app.parent_fullname ||
+          app.parent_email ||
+          "Unknown Student";
+
+        return { ...app, full_name };
+      });
+
+      setData(merged);
     } catch (err: any) {
       addToast({
-        title:
-          err?.response?.data?.toString() ?? err?.message ?? "Unknown Error",
+        title: "Error fetching data",
+        description: err?.response?.data?.toString() ?? err?.message,
+        color: "danger",
       });
     } finally {
       setLoading(false);
     }
   }
+
   useEffect(() => {
     fetchApplications();
   }, []);
 
-  const handleOpenVerify = (user: any) => {
+  // Filter logic
+  const filteredItems = useMemo(() => {
+    return data.filter(
+      (item) =>
+        item.full_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.parent_email?.toLowerCase().includes(filterValue.toLowerCase())
+    );
+  }, [data, filterValue]);
+
+  const handleOpenVerify = (user: ExtendedApplication) => {
     setSelectedUser(user);
     onOpen();
   };
@@ -59,15 +98,19 @@ export function VerifikasiPage() {
       <Header />
       <div className="container mx-auto px-6 py-10 max-w-7xl space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-black text-secondary italic underline decoration-primary/30">
-            Daftar Antrean Verifikasi
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+              <UserCheck size={24} />
+            </div>
+            <h2 className="text-3xl font-black text-secondary italic underline decoration-primary/30">
+              Daftar Verikasi Berkas
+            </h2>
+          </div>
           <Button
             isIconOnly
             variant="flat"
             className="bg-white"
             onPress={() => fetchApplications()}
-            aria-label="Refresh"
             disabled={loading}
           >
             <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
@@ -81,6 +124,8 @@ export function VerifikasiPage() {
             className="w-full md:max-w-xs font-medium"
             placeholder="Cari Siswa..."
             startContent={<Search size={18} className="text-zinc-400" />}
+            value={filterValue}
+            onValueChange={setFilterValue}
             variant="flat"
           />
           <div className="flex gap-2">
@@ -89,7 +134,7 @@ export function VerifikasiPage() {
               startContent={<Filter size={18} />}
               className="font-bold"
             >
-              Filter Paket
+              Filter
             </Button>
             <Button
               color="primary"
@@ -102,20 +147,11 @@ export function VerifikasiPage() {
 
         {/* TABLE */}
         <div className="relative bg-white rounded-[40px] shadow-xl overflow-hidden border border-secondary/5">
-          {loading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
-              <div className="flex flex-col items-center gap-2">
-                <RefreshCcw size={36} className="animate-spin text-primary" />
-                <span className="text-sm font-medium text-secondary/70">
-                  Loading...
-                </span>
-              </div>
-            </div>
-          )}
           <Table
             aria-label="Verifikasi Table"
             className="p-4"
             selectionMode="single"
+            removeWrapper
           >
             <TableHeader>
               <TableColumn className="bg-transparent text-secondary/40 font-black tracking-widest uppercase text-[10px]">
@@ -137,16 +173,21 @@ export function VerifikasiPage() {
                 Aksi
               </TableColumn>
             </TableHeader>
-            <TableBody>
-              {data.map((row) => (
+            <TableBody
+              items={filteredItems}
+              emptyContent={
+                loading ? "Sedang memuat data..." : "Tidak ada data ditemukan"
+              }
+            >
+              {(row) => (
                 <TableRow
-                  key={row.id_user}
+                  key={row.id}
                   className="border-b border-zinc-50 last:border-none hover:bg-background-light transition-colors"
                 >
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-bold text-secondary">
-                        {row.id_user}
+                        {row.full_name}
                       </span>
                       <span className="text-xs text-zinc-400 font-medium">
                         {row.parent_email}
@@ -167,13 +208,37 @@ export function VerifikasiPage() {
                     {moment(row.created_at).format("DD MMM YYYY")}
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      variant="dot"
-                      color="warning"
-                      className="font-bold border-none text-[10px] uppercase"
-                    >
-                      Pending
-                    </Chip>
+                    {(() => {
+                      const isVerified =
+                        row.status_application === ApplicationStatus.VERIFIED;
+                      const isRejected =
+                        row.status_application === ApplicationStatus.REJECTED;
+                      const isPaid = row.payment_status === true;
+
+                      let color: any = "warning";
+                      let label = "Pending";
+
+                      if (isVerified) {
+                        color = "success";
+                        label = "Verified";
+                      } else if (isRejected) {
+                        color = "danger";
+                        label = "Rejected";
+                      } else if (isPaid) {
+                        color = "primary";
+                        label = "Paid / Approved";
+                      }
+
+                      return (
+                        <Chip
+                          variant="dot"
+                          color={color}
+                          className="font-bold border-none text-[10px] uppercase"
+                        >
+                          {label}
+                        </Chip>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -187,7 +252,7 @@ export function VerifikasiPage() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
@@ -199,7 +264,7 @@ export function VerifikasiPage() {
         user={
           selectedUser
             ? {
-                name: String(selectedUser.id_user),
+                name: selectedUser.full_name,
                 email: selectedUser.parent_email,
                 package: selectedUser.application_type,
                 note: selectedUser.notes || "",
