@@ -1,12 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router";
-import {
-  AlignJustify,
-  X,
-  LayoutDashboard,
-  UserCheck,
-  LogOut,
-  HandCoins,
-} from "lucide-react";
+import { AlignJustify, X, UserCheck, LogOut, HandCoins } from "lucide-react";
 import { useState } from "react";
 import {
   Button,
@@ -31,10 +24,12 @@ export function Header(props: HeaderProps) {
   return (
     <div
       className={`
-        sticky top-0 z-50 w-full transition-all duration-300
-        ${props.noPaddingHorizontal ? "" : "px-6 xl:px-[10%]"}
-        bg-white/80 backdrop-blur-md border-b border-secondary/5 py-3
-      `}
+    sticky top-0 z-50 w-full transition-all duration-300
+    ${props.noPaddingHorizontal ? "" : "px-6 xl:px-[10%]"}
+    /* bg-white untuk mobile (opaque), md:bg-white/80 untuk desktop (transparan) */
+    bg-white md:bg-white/80 md:backdrop-blur-md 
+    border-b border-secondary/5 py-3
+  `}
     >
       <div className="max-w-[1440px] mx-auto flex items-center justify-between">
         {/* LOGO & ADMIN TAG */}
@@ -201,11 +196,11 @@ export function Header(props: HeaderProps) {
 
           <nav className="flex flex-col gap-2">
             {[
-              {
-                label: "Dashboard",
-                path: "/",
-                icon: <LayoutDashboard size={20} />,
-              },
+              // {
+              //   label: "Dashboard",
+              //   path: "/",
+              //   icon: <LayoutDashboard size={20} />,
+              // },
               {
                 label: "Verifikasi Berkas",
                 path: "/",

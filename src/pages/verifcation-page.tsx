@@ -17,6 +17,7 @@ import { Verification } from "../components/VerificationModal";
 import { AxiosClient } from "../api/AxiosClient";
 import { UserUtility } from "../utils";
 import { Application } from "../api/model/table/Application";
+import { UserApplicant } from "../api/model/table/UserApplicant";
 import moment from "moment";
 import { ApplicationStatus } from "../api/model/enum/ApplicationStatus";
 
@@ -28,6 +29,8 @@ export function VerifikasiPage() {
   const [selectedUser, setSelectedUser] = useState<ExtendedApplication | null>(
     null
   );
+  const [selectedApplicant, setSelectedApplicant] =
+    useState<UserApplicant | null>(null);
   const [data, setData] = useState<ExtendedApplication[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -87,6 +90,12 @@ export function VerifikasiPage() {
 
   const handleOpenVerify = (user: ExtendedApplication) => {
     setSelectedUser(user);
+    // Look up the corresponding applicant
+    const applicants = data;
+    const found = applicants.find(
+      (a: any) => a.id_user_applicant === user.id_user_applicant
+    )?.otm_id_user_applicant;
+    setSelectedApplicant(found || null);
     onOpen();
   };
 
@@ -271,6 +280,7 @@ export function VerifikasiPage() {
             : null
         }
         applicationId={selectedUser?.id ?? null}
+        applicant={selectedApplicant}
       />
     </div>
   );

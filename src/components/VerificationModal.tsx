@@ -7,8 +7,8 @@ import {
   ModalFooter,
   Button,
   Divider,
-  User,
   addToast,
+  Chip,
 } from "@heroui/react";
 import { AxiosClient } from "../api/AxiosClient";
 import { UserUtility } from "../utils";
@@ -17,9 +17,15 @@ import {
   FileText,
   XCircle,
   Download,
+  User as UserIcon,
+  BookOpen,
+  GraduationCap,
+  Phone,
 } from "lucide-react";
 import { ApplicationStatus } from "../api/model/enum/ApplicationStatus";
 import { Application } from "../api/model/table/Application";
+import { UserApplicant } from "../api/model/table/UserApplicant";
+import moment from "moment";
 
 export interface VerificationProps {
   isOpen: boolean;
@@ -33,49 +39,58 @@ export interface VerificationProps {
     application: Application;
   } | null;
   applicationId?: number | null;
+  applicant?: UserApplicant | null;
 }
 
 export function Verification(props: VerificationProps) {
   const [submitting, setSubmitting] = useState(false);
   const [notes, setNotes] = useState("");
+  const [fetchedApplicant, setFetchedApplicant] =
+    useState<UserApplicant | null>(null);
 
-  useEffect(() => {
-    console.log("NOTES CHANGED", notes);
-  }, [notes]);
   useEffect(() => {
     if (props.isOpen) {
-      // If the application is already verified, show the saved application.notes
-      if (
-        props.user?.status === ApplicationStatus.VERIFIED ||
-        props.user?.status === ApplicationStatus.REJECTED
-      ) {
-        setNotes(props.user?.application?.notes || "");
-      } else {
-        setNotes(props.user?.note || "");
-      }
+      const existingNotes =
+        props.user?.application?.notes || props.user?.note || "";
+      setNotes(existingNotes);
     }
-  }, [props.applicationId, props.isOpen, props.user]);
+  }, [props.isOpen, props.user]);
 
-  async function handleVerify() {
+  // Fetch applicant data from API when modal opens
+  useEffect(() => {
+    const fetchApplicant = async () => {
+      if (!props.isOpen || !props.user?.application?.id_user_applicant) return;
+
+      try {
+        const res = await AxiosClient.userGetUserApplicantsList({
+          headers: { authorization: UserUtility.getAuthHeader() },
+        });
+
+        const applicantsList = res || [];
+        const found = applicantsList.find(
+          (a: UserApplicant) =>
+            a.id === props.user?.application?.id_user_applicant
+        );
+
+        setFetchedApplicant(found || null);
+      } catch (err) {
+        console.error("Failed to fetch applicant", err);
+      }
+    };
+
+    fetchApplicant();
+  }, [props.isOpen, props.user?.application?.id_user_applicant]);
+
+  async function handleAction(status: ApplicationStatus) {
     if (!props.applicationId) return;
     setSubmitting(true);
     try {
-      console.log(
-        "Verifying application:",
-        props.applicationId,
-        "with notes:",
-        notes
-      );
       await AxiosClient.adminVerifyApplicationById({
         headers: { authorization: UserUtility.getAuthHeader() },
         path: { id_application: props.applicationId },
-        body: {
-          application_status: ApplicationStatus.VERIFIED,
-          notes: notes,
-        },
+        body: { application_status: status, notes: notes },
       });
-      console.log("berhasil");
-      addToast({ title: "Aplikasi berhasil diverifikasi" });
+      addToast({ title: "Status Berhasil Diperbarui", color: "success" });
       props.onOpenChange(false);
     } catch (err: unknown) {
       addToast({ title: err instanceof Error ? err.message : "Gagal memverifikasi" });
@@ -110,309 +125,285 @@ export function Verification(props: VerificationProps) {
       setSubmitting(false);
     }
   }
+
+  const app = props.user?.application;
+  const applicant =
+    fetchedApplicant || props.applicant || app?.otm_id_user_applicant;
+
   return (
     <Modal
       isOpen={props.isOpen}
       onOpenChange={props.onOpenChange}
-      size="4xl"
+      size="5xl" // Changed to 5xl for a centered look on desktop
       scrollBehavior="inside"
       backdrop="blur"
-      className="rounded-[40px] border border-white/20 shadow-2xl"
+      placement="center" // Ensures it is centered
+      className="rounded-[40px] shadow-2xl overflow-hidden mx-4 md:mx-0" // High rounding and mobile margins
     >
       <ModalContent>
-        {() => (
-          <>
-            <ModalHeader className="flex flex-col gap-1 p-8 bg-background-light">
-              <div className="flex justify-between items-start w-full">
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-black text-secondary uppercase tracking-tight">
-                    Verifikasi Pendaftar
+        <>
+          <ModalHeader className="p-6 md:p-8 bg-zinc-50 border-b">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-2xl text-primary shrink-0">
+                  <GraduationCap size={32} />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-xl md:text-2xl font-black text-secondary uppercase tracking-tight truncate">
+                    Verifikasi Pendaftaran
                   </h2>
-                  <p className="text-sm text-secondary/50 font-medium">
-                    Tinjau berkas dan tentukan jadwal belajar siswa.
+                  <p className="text-xs md:text-sm text-zinc-500">
+                    ID: #{props.applicationId} •{" "}
+                    {moment(app?.created_at).format("DD MMM YYYY")}
                   </p>
                 </div>
-                {props.user && (
-                  <div className="bg-white px-4 py-2 rounded-2xl shadow-sm border border-secondary/5 flex items-center gap-3">
-                    <User
-                      name={props.user.name}
-                      description={props.user.package}
-                      avatarProps={{
-                        size: "sm",
-                        className: "bg-primary/20 text-primary font-bold",
-                      }}
-                      classNames={{
-                        name: "font-bold text-secondary",
-                        description:
-                          "text-primary text-[10px] font-black uppercase",
-                      }}
-                    />
-                  </div>
-                )}
               </div>
-            </ModalHeader>
-
-            <Divider />
-
-            <ModalBody className="p-8">
-              <div className="grid md:grid-cols-2 gap-12">
-                {/* DOKUMEN PREVIEW - KIRI */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
-                      Dokumen Terlampir
-                    </h4>
-                    <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
-                      4 File
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {props.user?.application &&
-                      [
-                        { label: "Kartu Keluarga", key: "kk_url" },
-                        { label: "Akte Lahir", key: "akta_lahir_url" },
-                        { label: "KTP Ortu", key: "ktp_ortu_url" },
-                        // {
-                        //   label: "Ijazah Terakhir",
-                        //   key: "ijazah_terakhir_url",
-                        // },
-                        // { label: "Raport", key: "raport_url" },
-                        { label: "Photo", key: "photo_url" },
-                        // { label: "Selfie", key: "selfie_url" },
-                      ].map((doc) => {
-                        const url = props.user?.application?.[
-                          doc.key as keyof typeof props.user.application
-                        ] as string | undefined;
-                        const fileUrl = url
-                          ? // ? `https://api-fir1.onrender.com${url}`
-                            `${url}`
-                          : null;
-
-                        return (
-                          <div
-                            key={doc.key}
-                            className="aspect-video bg-background-light rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 group hover:border-primary hover:bg-white transition-all relative overflow-hidden"
-                            style={{ cursor: fileUrl ? "pointer" : "default" }}
-                          >
-                            {fileUrl && (
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute inset-0"
-                                title={`View ${doc.label}`}
-                              />
-                            )}
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                              {fileUrl && (
-                                <>
-                                  {/* <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      window.open(fileUrl, "_blank");
-                                    }}
-                                    className="p-1 bg-primary/10 hover:bg-primary/20 rounded text-primary"
-                                    title="View"
-                                  >
-                                    <ExternalLink size={14} />
-                                  </button> */}
-                                  <a
-                                    href={fileUrl}
-                                    download
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="p-1 bg-primary/10 hover:bg-primary/20 rounded text-primary"
-                                    title="Download"
-                                  >
-                                    <Download size={14} />
-                                  </a>
-                                </>
-                              )}
-                            </div>
-                            <FileText
-                              className="text-zinc-300 group-hover:text-primary group-hover:scale-110 transition-transform"
-                              size={28}
-                            />
-                            <span className="text-[10px] mt-3 font-bold text-secondary/60 group-hover:text-primary uppercase tracking-tight text-center px-2">
-                              {doc.label}
-                            </span>
-                            {!fileUrl && (
-                              <span className="text-[8px] text-red-500 font-bold mt-1">
-                                No File
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  <div className="p-4 bg-secondary/5 rounded-2xl border border-secondary/10">
-                    <p className="text-[10px] text-secondary/40 font-bold uppercase mb-1">
-                      Catatan Admin:
-                    </p>
-                    <p className="text-xs text-secondary/70 leading-relaxed italic">
-                      "Pastikan NIK pada KK sesuai dengan data Dapodik sekolah
-                      sebelumnya."
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
-                    Notes
-                  </h4>
-                  <div className="space-y-5">
-                    <textarea
-                      value={notes}
-                      onChange={(e) => {
-                        console.log("TEXTAREA INPUT:", e.target.value);
-                        setNotes(e.target.value);
-                      }}
-                      placeholder="Tambahkan catatan untuk pendaftar di sini..."
-                      className="w-full h-32 p-4 border border-secondary/10 rounded-2xl bg-background-light text-secondary text-sm font-medium placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                      disabled={
-                        props.user?.status === ApplicationStatus.VERIFIED ||
-                        props.user?.status === ApplicationStatus.REJECTED
-                      }
-                    />
-                  </div>
-                </div>
-
-                {/* PENENTUAN JADWAL - KANAN */}
-                {/* <div className="space-y-8">
-                  <h4 className="font-bold text-xs text-zinc-400 uppercase tracking-[0.2em]">
-                    Penempatan Siswa
-                  </h4>
-
-                  <div className="space-y-5">
-                    <Select
-                      label="Ruang Kelas"
-                      variant="flat"
-                      labelPlacement="outside"
-                      placeholder="Pilih Ruangan"
-                      startContent={
-                        <MapPin size={18} className="text-primary" />
-                      }
-                      className="font-bold"
-                    >
-                      <SelectItem
-                        key="r1"
-                        className="font-medium text-secondary"
-                      >
-                        Ruang A1 - Gedung Utama
-                      </SelectItem>
-                      <SelectItem
-                        key="r2"
-                        className="font-medium text-secondary"
-                      >
-                        Ruang B2 - Lab Komputer
-                      </SelectItem>
-                      <SelectItem
-                        key="r3"
-                        className="font-medium text-secondary"
-                      >
-                        Ruang Belajar Mandiri
-                      </SelectItem>
-                    </Select>
-
-                    <Select
-                      label="Sesi Belajar"
-                      variant="flat"
-                      labelPlacement="outside"
-                      placeholder="Pilih Sesi"
-                      startContent={
-                        <Clock size={18} className="text-primary" />
-                      }
-                      className="font-bold"
-                    >
-                      <SelectItem
-                        key="s1"
-                        className="font-medium text-secondary"
-                      >
-                        Pagi (08:00 - 11:00)
-                      </SelectItem>
-                      <SelectItem
-                        key="s2"
-                        className="font-medium text-secondary"
-                      >
-                        Siang (13:00 - 15:00)
-                      </SelectItem>
-                      <SelectItem
-                        key="s3"
-                        className="font-medium text-secondary"
-                      >
-                        Sore (15:30 - 17:30)
-                      </SelectItem>
-                    </Select>
-
-                    <Select
-                      label="Hari Tatap Muka"
-                      variant="flat"
-                      labelPlacement="outside"
-                      placeholder="Pilih Hari"
-                      selectionMode="multiple"
-                      className="font-bold"
-                    >
-                      {[
-                        "Senin",
-                        "Selasa",
-                        "Rabu",
-                        "Kamis",
-                        "Jumat",
-                        "Sabtu",
-                      ].map((day) => (
-                        <SelectItem
-                          key={day.toLowerCase()}
-                          className="font-medium text-secondary"
-                        >
-                          {day}
-                        </SelectItem>
-                      ))}
-                    </Select>
-                  </div>
-
-                  <div className="p-5 bg-primary/5 rounded-[28px] border border-primary/10 space-y-2">
-                    <p className="text-xs font-black text-primary uppercase tracking-widest">
-                      Informasi
-                    </p>
-                    <p className="text-[11px] text-secondary/70 leading-relaxed">
-                      Setelah menekan tombol terima, sistem akan otomatis
-                      mengirimkan email konfirmasi dan jadwal kepada siswa yang
-                      bersangkutan.
-                    </p>
-                  </div>
-                </div> */}
-              </div>
-            </ModalBody>
-            {props.user?.status === ApplicationStatus.VERIFIED ||
-            props.user?.status === ApplicationStatus.REJECTED ? null : (
-              <ModalFooter className="p-8 bg-background-light flex justify-between items-center">
-                <Button
-                  variant="light"
-                  color="danger"
-                  onPress={handleReject}
-                  disabled={submitting}
-                  className="font-bold rounded-xl px-6"
-                  startContent={<XCircle size={18} />}
+              <div className="flex gap-2">
+                <Chip
+                  color="secondary"
+                  variant="shadow"
+                  size="sm"
+                  className="font-bold px-2 md:px-4"
                 >
-                  {submitting ? "Processing..." : "Tolak & Kirim Revisi"}
-                </Button>
+                  PAKET {app?.application_type}
+                </Chip>
+                <Chip variant="flat" size="sm" className="font-bold uppercase">
+                  {app?.student_status}
+                </Chip>
+              </div>
+            </div>
+          </ModalHeader>
 
-                <div className="flex gap-3">
-                  <Button
-                    color="primary"
-                    className="bg-secondary text-white font-black px-10 rounded-xl shadow-xl shadow-secondary/20"
-                    onPress={handleVerify}
-                    startContent={<CheckCircle size={18} />}
-                    disabled={submitting}
-                  >
-                    {submitting ? "Processing..." : "Terima & Verify"}
-                  </Button>
+          <ModalBody className="p-6 md:p-8 bg-white">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
+              {/* COL 1: DOCUMENTS */}
+              <div className="space-y-6">
+                <SectionHeader
+                  icon={<FileText size={16} />}
+                  title="Berkas Lampiran"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "KK", key: "kk_url" },
+                    { label: "Akte", key: "akta_lahir_url" },
+                    { label: "KTP", key: "ktp_ortu_url" },
+                    { label: "Foto", key: "photo_url" },
+                    { label: "Selfie", key: "selfie_url" },
+                    { label: "Ijazah", key: "ijazah_terakhir_url" },
+                    { label: "Rapor", key: "raport_url" },
+                    { label: "Mutasi", key: "surat_pindah_url" },
+                  ].map((doc) => {
+                    const url = app?.[doc.key as keyof Application] as string;
+                    const CardContent = (
+                      <>
+                        <FileText
+                          size={20}
+                          className={url ? "text-primary" : "text-zinc-300"}
+                        />
+                        <span className="text-[10px] font-black uppercase mt-1 text-zinc-500">
+                          {doc.label}
+                        </span>
+                        {url && (
+                          <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-all">
+                            <div className="flex items-center justify-center w-7 h-7 bg-primary/10 rounded-lg text-primary backdrop-blur-sm">
+                              <Download size={14} />
+                            </div>
+                          </div>
+                        )}
+                        {!url && (
+                          <span className="text-[8px] text-zinc-400 font-bold">
+                            KOSONG
+                          </span>
+                        )}
+                      </>
+                    );
+
+                    return (
+                      <div key={doc.key} className="relative">
+                        {url ? (
+                          <a
+                            href={url}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="relative group h-20 md:h-24 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center transition-all border-primary/30 bg-primary/5 hover:bg-white hover:border-primary cursor-pointer overflow-hidden"
+                          >
+                            {CardContent}
+                          </a>
+                        ) : (
+                          <div className="h-20 md:h-24 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center border-zinc-100 bg-zinc-50 opacity-60">
+                            {CardContent}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </ModalFooter>
-            )}
-          </>
-        )}
+              </div>
+
+              {/* COL 2: STUDENT DATA */}
+              <div className="space-y-8 bg-zinc-50/50 p-6 rounded-[40px] border border-zinc-100">
+                <div className="space-y-6">
+                  <SectionHeader icon={<UserIcon size={16} />} title="Siswa" />
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-4">
+                    <DataBox
+                      label="Nama"
+                      value={applicant?.fullname}
+                      isFullWidth
+                    />
+                    <DataBox
+                      label="Gender"
+                      value={applicant?.gender === "M" ? "L" : "P"}
+                    />
+                    <DataBox label="Agama" value={applicant?.religion} />
+                    <DataBox label="Lahir" value={applicant?.birth_place} />
+                    <DataBox
+                      label="Tgl"
+                      value={
+                        applicant?.birth_date
+                          ? moment(applicant.birth_date).format("DD/MM/YY")
+                          : "-"
+                      }
+                    />
+                    <DataBox
+                      label="Email"
+                      value={applicant?.email}
+                      isFullWidth
+                    />
+                  </div>
+                </div>
+
+                <Divider />
+
+                <div className="space-y-6">
+                  <SectionHeader
+                    icon={<BookOpen size={16} />}
+                    title="Akademik"
+                  />
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-4">
+                    <DataBox label="NIK" value={app?.nik} />
+                    <DataBox label="NISN" value={app?.nisn} />
+                    <DataBox
+                      label="Sekolah"
+                      value={app?.asal_sekolah}
+                      isFullWidth
+                    />
+                    <DataBox label="Jenjang" value={app?.pendidikan_terakhir} />
+                    <DataBox label="Grade" value={app?.grade_terakhir} />
+                    <DataBox label="Status Siswa" value={app?.student_status} />
+                    <DataBox
+                      label="Alasan Pindah"
+                      value={app?.alasan_pindah}
+                      isFullWidth
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* COL 3: PARENTS & ACTION */}
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  <SectionHeader icon={<Phone size={16} />} title="Orang Tua" />
+                  <div className="p-6 bg-secondary text-white rounded-[40px] space-y-4 shadow-lg">
+                    <DataBox label="Nama" value={app?.parent_fullname} light />
+                    <DataBox label="WhatsApp" value={app?.parent_phone} light />
+                    <DataBox label="Email" value={app?.parent_email} light />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <SectionHeader
+                    icon={<CheckCircle size={16} />}
+                    title="Verifikasi"
+                  />
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Catatan pendaftar..."
+                    className="w-full h-32 md:h-40 p-5 rounded-[30px] border-2 border-zinc-100 bg-zinc-50 focus:bg-white focus:border-primary transition-all outline-none text-sm font-medium resize-none shadow-inner"
+                    disabled={
+                      props.user?.status !== ApplicationStatus.SUBMITTED
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          </ModalBody>
+
+          {props.user?.status === ApplicationStatus.SUBMITTED && (
+            <ModalFooter className="p-6 md:p-8 bg-zinc-50 border-t flex flex-col md:flex-row gap-3 md:justify-between">
+              <Button
+                variant="light"
+                color="danger"
+                onPress={() => handleAction(ApplicationStatus.REJECTED)}
+                isLoading={submitting}
+                className="font-black rounded-2xl w-full md:w-auto px-10 h-14"
+                startContent={!submitting && <XCircle size={20} />}
+              >
+                TOLAK
+              </Button>
+
+              <Button
+                color="primary"
+                onPress={() => handleAction(ApplicationStatus.VERIFIED)}
+                isLoading={submitting}
+                className="bg-secondary text-white font-black rounded-2xl w-full md:w-auto px-12 h-14 shadow-xl shadow-secondary/30"
+                startContent={!submitting && <CheckCircle size={20} />}
+              >
+                TERIMA
+              </Button>
+            </ModalFooter>
+          )}
+        </>
       </ModalContent>
     </Modal>
+  );
+}
+
+function SectionHeader({
+  icon,
+  title,
+}: {
+  icon: React.ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-zinc-100 pb-2">
+      <span className="text-primary">{icon}</span>
+      <h4 className="font-black text-[11px] text-secondary uppercase tracking-[0.2em]">
+        {title}
+      </h4>
+    </div>
+  );
+}
+
+function DataBox({
+  label,
+  value,
+  isFullWidth = false,
+  light = false,
+}: {
+  label: string;
+  value: any;
+  isFullWidth?: boolean;
+  light?: boolean;
+}) {
+  return (
+    <div className={`${isFullWidth ? "col-span-2" : "col-span-1"} space-y-0.5`}>
+      <p
+        className={`text-[8px] font-black uppercase tracking-widest ${
+          light ? "text-white/40" : "text-zinc-400"
+        }`}
+      >
+        {label}
+      </p>
+      <p
+        className={`text-xs font-bold leading-tight truncate ${
+          light ? "text-white" : "text-secondary"
+        }`}
+      >
+        {value || "-"}
+      </p>
+    </div>
   );
 }

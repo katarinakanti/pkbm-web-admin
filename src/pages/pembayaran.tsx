@@ -27,13 +27,38 @@ export function PembayaranPage() {
   async function fetchPayments() {
     setLoading(true);
     try {
+      // 1. Ambil data aplikasi
       const res = await AxiosClient.adminGetUserApplicationsList({
         headers: { authorization: UserUtility.getAuthHeader() },
         query: { limit: 100, offset: 0 },
       });
 
-      const antreanBayar = res.data.filter(
-        (app: Application) =>
+      // 2. Ambil data applicants (Sama seperti di VerifikasiPage)
+      const applicantsRes = await AxiosClient.userGetUserApplicantsList({
+        headers: { authorization: UserUtility.getAuthHeader() },
+      });
+
+      const applicantsList = applicantsRes || [];
+
+      // 3. Gabungkan data untuk mendapatkan full_name yang konsisten
+      const merged = (res.data || []).map((app: any) => {
+        const found = applicantsList.find(
+          (a: any) => a.id === app.id_user_applicant
+        );
+
+        const full_name =
+          app.full_name ||
+          found?.fullname ||
+          app.otm_id_user_applicant?.fullname ||
+          app.parent_fullname ||
+          "Unknown Student";
+
+        return { ...app, full_name };
+      });
+
+      // 4. Filter antrean bayar
+      const antreanBayar = merged.filter(
+        (app: any) =>
           app.status_application === "VERIFIED" || app.payment_proof_url
       );
 
@@ -59,7 +84,7 @@ export function PembayaranPage() {
               <HandCoins size={24} />
             </div>
             <h2 className="text-3xl font-black text-secondary italic underline decoration-primary/30">
-              Daftar Verikasi Pembayaran
+              Daftar Verifikasi Pembayaran
             </h2>
           </div>
           <Button
@@ -78,7 +103,6 @@ export function PembayaranPage() {
               <TableColumn className="uppercase text-[10px] font-black tracking-widest text-secondary/40">
                 Nama Siswa
               </TableColumn>
-              {/* KOLOM JENJANG BARU */}
               <TableColumn className="uppercase text-[10px] font-black tracking-widest text-secondary/40">
                 Jenjang
               </TableColumn>
@@ -86,7 +110,7 @@ export function PembayaranPage() {
                 Status Bayar
               </TableColumn>
               <TableColumn className="uppercase text-[10px] font-black tracking-widest text-secondary/40">
-                Verfikasi Bukti Pembayaran
+                Verifikasi Bukti Pembayaran
               </TableColumn>
               <TableColumn
                 align="center"
@@ -106,16 +130,20 @@ export function PembayaranPage() {
                 >
                   <TableCell>
                     <div className="flex flex-col">
+                      {/* Menggunakan full_name hasil merged */}
                       <span className="font-bold text-secondary">
+<<<<<<< HEAD
                         {row.parent_fullname || "Siswa"}
+=======
+                        {row.full_name}
+>>>>>>> 395651c (all check verif)
                       </span>
                       <span className="text-xs text-zinc-400 font-medium">
-                        ID: #{row.id}
+                        {row.parent_email}
                       </span>
                     </div>
                   </TableCell>
 
-                  {/* CELL JENJANG DENGAN CHIP */}
                   <TableCell>
                     <Chip
                       size="sm"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -95,12 +95,10 @@ export function PaymentVerificationModal({
             <div className="flex justify-between items-center bg-zinc-50 p-5 rounded-2xl border border-zinc-100">
               <div>
                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">
-                  Nama Pendaftar
+                  Nama Siswa
                 </p>
                 <p className="font-bold text-secondary text-lg">
-                  {application?.parent_fullname ||
-                    application?.parent_email ||
-                    "Nama Siswa"}
+                  {(application as any)?.full_name || "Nama Siswa"}
                 </p>
               </div>
               <div className="text-right">

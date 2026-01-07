@@ -1,10 +1,5 @@
 import { Link } from "react-router";
-import {
-  Mail,
-  MapPin,
-  Phone,
-  Facebook,
-} from "lucide-react";
+import { Mail, MapPin, Phone, Facebook } from "lucide-react";
 
 export interface FooterProps {
   noPaddingHorizontal?: boolean;
