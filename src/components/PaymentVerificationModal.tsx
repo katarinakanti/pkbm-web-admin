@@ -61,10 +61,10 @@ export function PaymentVerificationModal({
 
       onSuccess(); // Refresh data di table utama
       onOpenChange(false); // Tutup modal
-    } catch (err: any) {
+    } catch (err: unknown) {
       addToast({
         title: "Gagal memproses pembayaran",
-        description: err?.message || "Terjadi kesalahan pada server",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan pada server",
         color: "danger",
       });
     } finally {
@@ -98,8 +98,8 @@ export function PaymentVerificationModal({
                   Nama Pendaftar
                 </p>
                 <p className="font-bold text-secondary text-lg">
-                  {(application as any)?.parent_fullname ||
-                    (application as any)?.full_name ||
+                  {application?.parent_fullname ||
+                    application?.parent_email ||
                     "Nama Siswa"}
                 </p>
               </div>

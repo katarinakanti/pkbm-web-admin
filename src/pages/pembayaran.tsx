@@ -15,13 +15,13 @@ import { useEffect, useState } from "react";
 import { Header } from "../components/layout/Header";
 import { AxiosClient } from "../api/AxiosClient";
 import { UserUtility } from "../utils";
-import moment from "moment";
 import { PaymentVerificationModal } from "../components/PaymentVerificationModal";
+import { Application } from "../api/model/table/Application";
 
 export function PembayaranPage() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [selectedApp, setSelectedApp] = useState<any>(null);
-  const [data, setData] = useState<any[]>([]);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [data, setData] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function fetchPayments() {
@@ -33,12 +33,12 @@ export function PembayaranPage() {
       });
 
       const antreanBayar = res.data.filter(
-        (app: any) =>
+        (app: Application) =>
           app.status_application === "VERIFIED" || app.payment_proof_url
       );
 
       setData(antreanBayar);
-    } catch (err: any) {
+    } catch {
       addToast({ title: "Gagal memuat data pembayaran", color: "danger" });
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ export function PembayaranPage() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-bold text-secondary">
-                        {row.parent_fullname || row.full_name || "Siswa"}
+                        {row.parent_fullname || "Siswa"}
                       </span>
                       <span className="text-xs text-zinc-400 font-medium">
                         ID: #{row.id}

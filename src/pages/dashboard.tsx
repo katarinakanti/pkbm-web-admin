@@ -110,7 +110,7 @@ export function Dashboard() {
                   </div>
                   <Progress
                     value={(item.used / item.total) * 100}
-                    color={item.color as any}
+                    color={item.color as "primary" | "secondary" | "success" | "warning" | "danger"}
                     size="md"
                     radius="sm"
                   />

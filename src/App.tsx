@@ -6,7 +6,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AxiosClient } from "./api/AxiosClient";
-import { Dashboard } from "./pages/dashboard";
 import { VerifikasiPage } from "./pages/verifcation-page";
 import { SettingsPage } from "./pages/settings";
 import { LoginPage } from "./pages/login";

@@ -4,17 +4,13 @@ import {
   X,
   LayoutDashboard,
   UserCheck,
-  Bell,
   LogOut,
-  Search,
-  Settings,
   HandCoins,
 } from "lucide-react";
 import { useState } from "react";
 import {
   Button,
   Avatar,
-  Badge,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,

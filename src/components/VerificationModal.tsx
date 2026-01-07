@@ -6,8 +6,6 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Select,
-  SelectItem,
   Divider,
   User,
   addToast,
@@ -17,10 +15,7 @@ import { UserUtility } from "../utils";
 import {
   CheckCircle,
   FileText,
-  MapPin,
-  Clock,
   XCircle,
-  ExternalLink,
   Download,
 } from "lucide-react";
 import { ApplicationStatus } from "../api/model/enum/ApplicationStatus";
@@ -82,8 +77,8 @@ export function Verification(props: VerificationProps) {
       console.log("berhasil");
       addToast({ title: "Aplikasi berhasil diverifikasi" });
       props.onOpenChange(false);
-    } catch (err: any) {
-      addToast({ title: err?.message ?? "Gagal memverifikasi" });
+    } catch (err: unknown) {
+      addToast({ title: err instanceof Error ? err.message : "Gagal memverifikasi" });
     } finally {
       setSubmitting(false);
     }
@@ -109,8 +104,8 @@ export function Verification(props: VerificationProps) {
       console.log("deny berhasil");
       addToast({ title: "Aplikasi berhasil ditolak" });
       props.onOpenChange(false);
-    } catch (err: any) {
-      addToast({ title: err?.message ?? "Gagal memverifikasi" });
+    } catch (err: unknown) {
+      addToast({ title: err instanceof Error ? err.message : "Gagal memverifikasi" });
     } finally {
       setSubmitting(false);
     }
@@ -125,7 +120,7 @@ export function Verification(props: VerificationProps) {
       className="rounded-[40px] border border-white/20 shadow-2xl"
     >
       <ModalContent>
-        {(onClose) => (
+        {() => (
           <>
             <ModalHeader className="flex flex-col gap-1 p-8 bg-background-light">
               <div className="flex justify-between items-start w-full">

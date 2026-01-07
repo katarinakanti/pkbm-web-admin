@@ -5,13 +5,12 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Input,
   Button,
   Chip,
   useDisclosure,
   addToast,
 } from "@heroui/react";
-import { Search, Filter, Eye, RefreshCcw, UserCheck } from "lucide-react";
+import { Eye, RefreshCcw, UserCheck } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Header } from "../components/layout/Header";
 import { Verification } from "../components/VerificationModal";
@@ -31,7 +30,6 @@ export function VerifikasiPage() {
   );
   const [data, setData] = useState<ExtendedApplication[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filterValue, setFilterValue] = useState("");
 
   async function fetchApplications() {
     setLoading(true);
@@ -47,9 +45,9 @@ export function VerifikasiPage() {
 
       const applicantsList = applicantsRes || [];
 
-      const merged: ExtendedApplication[] = (res.data || []).map((app: any) => {
+      const merged: ExtendedApplication[] = (res.data || []).map((app: Application) => {
         const found = applicantsList.find(
-          (a: any) => a.id === app.id_user_applicant
+          (a: { id: number }) => a.id === app.id_user_applicant
         );
 
         const full_name =
@@ -64,10 +62,13 @@ export function VerifikasiPage() {
       });
 
       setData(merged);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err && typeof err === 'object' && 'response' in err 
+        ? String((err as { response?: { data?: unknown } }).response?.data) 
+        : err instanceof Error ? err.message : "Unknown error";
       addToast({
         title: "Error fetching data",
-        description: err?.response?.data?.toString() ?? err?.message,
+        description: errorMessage,
         color: "danger",
       });
     } finally {
@@ -81,12 +82,8 @@ export function VerifikasiPage() {
 
   // Filter logic
   const filteredItems = useMemo(() => {
-    return data.filter(
-      (item) =>
-        item.full_name.toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.parent_email?.toLowerCase().includes(filterValue.toLowerCase())
-    );
-  }, [data, filterValue]);
+    return data;
+  }, [data]);
 
   const handleOpenVerify = (user: ExtendedApplication) => {
     setSelectedUser(user);
@@ -215,7 +212,7 @@ export function VerifikasiPage() {
                         row.status_application === ApplicationStatus.REJECTED;
                       const isPaid = row.payment_status === true;
 
-                      let color: any = "warning";
+                      let color: "success" | "warning" | "danger" = "warning";
                       let label = "Pending";
 
                       if (isVerified) {

@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Card,
-  CardBody,
   Input,
   Button,
-  Checkbox,
   addToast,
 } from "@heroui/react";
-import { Lock, Mail, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router";
 import { AxiosClient } from "../api/AxiosClient";
 import { UserUtility } from "../utils";
@@ -41,10 +38,12 @@ export function LoginPage() {
         title: `Selamat datang, ${res.admin.fullname}`,
       });
       navigate("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err && typeof err === 'object' && 'response' in err 
+        ? String((err as { response?: { data?: unknown } }).response?.data) 
+        : err instanceof Error ? err.message : "Unknown Error";
       addToast({
-        title:
-          err?.response?.data?.toString() ?? err?.message ?? "Unknown Error",
+        title: errorMessage,
       });
     } finally {
       setLoadingSubmit(false);

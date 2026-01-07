@@ -3,9 +3,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  Instagram,
-  Linkedin,
-  Youtube,
   Facebook,
 } from "lucide-react";
 
